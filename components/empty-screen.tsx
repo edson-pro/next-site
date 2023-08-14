@@ -20,7 +20,9 @@ export function EmptyScreen({ setInput, persona }: any) {
     <div className="mx-auto max-w-2xl px-4">
       <div className="rounded-lg border bg-background p-8">
         <h1 className="mb-2 text-lg font-semibold">{persona.names}</h1>
-        <p className="mb-2 leading-7 text-muted-foreground">{persona.bio}</p>
+        <p className="mb-2 leading-7 line-clamp-5 text-muted-foreground">
+          {persona.bio}
+        </p>
         <p className="leading-7 text-muted-foreground">
           You can start a conversation with {persona.name} here or try the
           following examples:

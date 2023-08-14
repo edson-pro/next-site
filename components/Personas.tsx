@@ -28,15 +28,15 @@ export default function Personas() {
       )}
       <div>
         {status === "success" && (
-          <>
+          <div className="grid grid-cols-4 gap-4">
             {data?.map((persona) => (
               <Link
                 href={`/personas/${persona.id}`}
                 key={persona.id}
-                className="max-w-md p-4 flex flex-col hover:bg-gray-700 cursor-pointer rounded-md  border border-slate-700 space-y-2"
+                className=" p-4 flex flex-col hover:bg-gray-700 cursor-pointer rounded-md  border border-slate-700 space-y-2"
               >
                 <img
-                  className="h-14 bg-cover w-14 rounded-full"
+                  className="h-14 object-cover w-14 rounded-full"
                   src={persona.photo}
                   alt=""
                 />
@@ -46,7 +46,7 @@ export default function Personas() {
                 </p>
               </Link>
             ))}
-          </>
+          </div>
         )}
       </div>
     </div>

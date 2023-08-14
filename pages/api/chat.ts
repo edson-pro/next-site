@@ -14,15 +14,21 @@ const formatMessage = (message: VercelChatMessage) => {
 export default async function handler(req: any, res: any) {
   const json = await req.json();
   const { messages, persona_id } = json;
-  const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
+  const formattedPreviousMessages = messages
+    .slice(0, -1)
+    .slice(-2)
+    .map(formatMessage);
 
-  const question = messages[0].content;
+  const question = messages[messages.length - 1].content;
 
   const model = new ChatOpenAI({
     openAIApiKey: "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",
   });
 
-  const persona = await supabase.from("personas").select("*").eq("id", 1);
+  const persona = await supabase
+    .from("personas")
+    .select("*")
+    .eq("id", persona_id);
 
   const persona_bio = persona.data[0].bio;
   const persona_name = persona.data[0].names;
@@ -62,14 +68,12 @@ Examples:
 
 Examples END
 
-{chat_history}
-
 Human: {human_input}
 ${persona_name}: 
 
 `);
 
-  console.log(prompt);
+  console.log(persona_name);
   const outputParser = new BytesOutputParser();
 
   const chain = prompt.pipe(model).pipe(outputParser);
