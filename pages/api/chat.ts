@@ -61,6 +61,8 @@ Answer how ${persona_name} would Answer.\n
 Be creative.\n
 The answer should be as short as possible short.\n
 
+if you don't realy know what to answer, just respond as how ${persona_name} would respond if he/her does not have the answer".\n
+
 
 Examples:
 
