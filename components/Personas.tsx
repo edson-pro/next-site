@@ -4,7 +4,9 @@ import { useQuery } from "react-query";
 
 export default function Personas() {
   const loader = async () => {
-    const { data, error } = await supabase.from("personas").select();
+    const { data, error } = await supabase
+      .from("personas")
+      .select("photo, names, bio, id,suggestions");
     if (error) throw error;
     return data;
   };

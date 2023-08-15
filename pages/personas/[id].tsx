@@ -11,7 +11,7 @@ export default function Persona() {
   const loader = async () => {
     const { data, error } = await supabase
       .from("personas")
-      .select()
+      .select("photo, names, bio, id,suggestions")
       .eq("id", router.query.id)
       .single();
     if (error) throw error;
