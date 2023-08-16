@@ -22,7 +22,10 @@ export default async function handler(req: any, res: any) {
   const question = messages[messages.length - 1].content;
 
   const model = new ChatOpenAI({
-    openAIApiKey: "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",
+    openAIApiKey: process.env.OPENAI_API_KEY,
+  });
+  const embeddings = new OpenAIEmbeddings({
+    openAIApiKey: process.env.OPENAI_API_KEY,
   });
 
   const persona = await supabase
@@ -33,10 +36,8 @@ export default async function handler(req: any, res: any) {
   const persona_bio = persona.data[0].bio;
   const persona_name = persona.data[0].names;
 
-  const vectorStore = await SupabaseVectorStore.fromExistingIndex(
-    new OpenAIEmbeddings({
-      openAIApiKey: "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",
-    }),
+  const conversationsVectorStore = await SupabaseVectorStore.fromExistingIndex(
+    embeddings,
     {
       client: supabase,
       tableName: "conversation_chucks",
@@ -44,46 +45,48 @@ export default async function handler(req: any, res: any) {
     }
   );
 
-  const results = await vectorStore.similaritySearch(question, 1, {
-    persona_id: persona_id,
-  });
+  const conversations_results = await conversationsVectorStore.similaritySearch(
+    question,
+    1,
+    {
+      persona_id: persona_id,
+    }
+  );
 
   const prompt = PromptTemplate.fromTemplate<any>(`
 You are going to immerse yourself into the role of ${persona_name}.\n
-Who is ${persona_name}?
+ 
 ${persona_bio}.\n
 
-Instructions:
-Human will give you an input and examples of a conversation between ${persona_name} as a character and the interviewer.
-Use these examples as context to generate an answer to the Human's input in ${persona_name}'s style.
-Your answer should be believable, in a casual tone and in ${persona_name}'s style.
-Answer how ${persona_name} would Answer.\n
-Be creative.\n
-The answer should be as short as possible short.\n
-
-if you don't realy know what to answer, just respond as how ${persona_name} would respond if he/her does not have the answer".\n
-
-
+Mimic ${persona_name}'s communication style and respond to the human as ${persona_name} would respond in his typical conversations.\n
+Here is the examples of ${persona_name}'s previous typical conversations:\n
 Examples:
 
 {examples}
 
-Examples END
+Examples END 
+
+Instructions:
+Human will give you an input. 
+Your answer should be believable, in a casual tone and in ${persona_name}'s style.
+Answer how ${persona_name} would Answer.\n
+Be creative.\n
+If you don't find the answer in the context, resond with Sorry i can't answer this question, i have no idea.".\n
 
 Human: {human_input}
 ${persona_name}: 
 
 `);
 
-  console.log(persona_name);
   const outputParser = new BytesOutputParser();
 
   const chain = prompt.pipe(model).pipe(outputParser);
 
+  console.log(conversations_results.map((e) => e.pageContent).join("\n"));
+
   const stream = await chain.stream({
     human_input: question,
-    chat_history: formattedPreviousMessages.join("\n"),
-    examples: results.map((e) => e.pageContent).join("\n\n"),
+    examples: conversations_results.map((e) => e.pageContent).join("\n"),
   });
 
   return new StreamingTextResponse(stream);

@@ -17,8 +17,8 @@ export function EmptyScreen({ setInput, persona }: any) {
           {persona.bio}
         </p>
         <p className="leading-7 font-semibold text-base mt-7  text-white">
-          You can start a conversation with me here or try the following
-          questions.
+          You can start a conversation with {persona.names} here or try the
+          following questions.
         </p>
         <div className="mt-4 flex flex-col items-start space-y-2">
           {exampleMessages.map((message, index) => (
