@@ -70,8 +70,7 @@ Instructions:
 Human will give you an input. 
 Your answer should be believable, in a casual tone and in ${persona_name}'s style.
 Answer how ${persona_name} would Answer.\n
-Be creative.\n
-If you don't find the answer in the context, resond with Sorry i can't answer this question, i have no idea.".\n
+Be creative and give a straighforward shorter answer.\n 
 
 Human: {human_input}
 ${persona_name}: 
@@ -86,6 +85,7 @@ ${persona_name}:
 
   const stream = await chain.stream({
     human_input: question,
+    chat_history: formattedPreviousMessages.join("\n"),
     examples: conversations_results.map((e) => e.pageContent).join("\n"),
   });
 
