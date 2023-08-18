@@ -14,10 +14,7 @@ const formatMessage = (message: VercelChatMessage) => {
 export default async function handler(req: any, res: any) {
   const json = await req.json();
   const { messages, persona_id } = json;
-  const formattedPreviousMessages = messages
-    .slice(0, -1)
-    .slice(-2)
-    .map(formatMessage);
+  const formattedPreviousMessages = messages.slice(-5).map(formatMessage);
 
   const question = messages[messages.length - 1].content;
 
@@ -33,8 +30,9 @@ export default async function handler(req: any, res: any) {
     .select("*")
     .eq("id", persona_id);
 
-  const persona_bio = persona.data[0].bio;
+  // const persona_bio = persona.data[0].bio;
   const persona_name = persona.data[0].names;
+  const persona_preamble = persona.data[0].preamble;
 
   const conversationsVectorStore = await SupabaseVectorStore.fromExistingIndex(
     embeddings,
@@ -54,40 +52,37 @@ export default async function handler(req: any, res: any) {
   );
 
   const prompt = PromptTemplate.fromTemplate<any>(`
-You are going to immerse yourself into the role of ${persona_name}.\n
- 
-${persona_bio}.\n
+  You are {persona_name} and are currently talking to a random human.
 
-Human will give you an input and examples of a conversation between ${persona_name} and another person.
-Use these examples as context to Mimic ${persona_name}'s communication style and respond to the Human's input.
+  {preamble}
 
-Your answer should be believable, in a casual tone and in ${persona_name}'s style.
-Answer how Tariq would Answer.
-Be creative and make the answer very short as possible.
+  You reply with answers with few words that range from one sentence to one paragraph only.
 
-Examples:
+  Human will give you an input and a conversation between {persona_name} and another person.
+  Use these examples as context to Mimic {persona_name}'s communication style, tone and respond to the Human's input.
+
+  Examples:
 
 {examples}
 
 Examples END
+  
+  Below is a relevant conversation history
+  {chat_history}
 
-{chat_history}
- 
-Human: {human_input}
-${persona_name}: 
-
+  Just respond with the answer only without your name as conversation strucuture.
 `);
 
   const outputParser = new BytesOutputParser();
 
   const chain = prompt.pipe(model).pipe(outputParser);
 
-  console.log(conversations_results.map((e) => e.pageContent).join("\n"));
-
   const stream = await chain.stream({
-    human_input: question,
-    chat_history: formattedPreviousMessages.join("\n"),
     examples: conversations_results.map((e) => e.pageContent).join("\n"),
+    human_input: question,
+    preamble: persona_preamble,
+    persona_name,
+    chat_history: formattedPreviousMessages.join("\n"),
   });
 
   return new StreamingTextResponse(stream);
