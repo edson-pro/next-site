@@ -56,7 +56,7 @@ export default async function handler(req: any, res: any) {
 
   {preamble}
 
-  You reply with answers with few words that range from one sentence to one paragraph only.
+  You reply with answers that range from one sentence to one paragraph only.
 
   Human will give you an input and a conversation between {persona_name} and another person.
   Use these examples as context to Mimic {persona_name}'s communication style, tone and respond to the Human's input.
